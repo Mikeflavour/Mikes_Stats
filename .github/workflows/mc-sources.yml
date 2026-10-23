@@ -1,8 +1,11 @@
 name: mc-sources
 
-# Manual: decompiles Minecraft so the source can be looked up while coding.
+# Decompiles Minecraft so the source can be looked up while coding.
+# Push trigger: workflow_dispatch only works once the file is on main.
 on:
   workflow_dispatch:
+  push:
+    paths: ['.github/workflows/mc-sources.yml']
 
 jobs:
   sources:
