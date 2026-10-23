@@ -116,6 +116,7 @@ Dazu ein paar Werte, die Vanilla nicht speichert: höchstes Level, XP gesamt, Le
 | Level | Vanilla |
 | Höchstes (seit Mod) | Mod |
 | Tode | Vanilla |
+| PvP-Kills: Anzahl seit Tag 1. Maus drauf zeigt, wen er seit Installation getötet hat (z.B. „Ben 3×, Tim 1×") | Vanilla + Mod [Mike] |
 | Spielzeit (Stunden) | Vanilla |
 | XP gesamt (seit Mod) | Mod |
 
@@ -138,10 +139,10 @@ Unten links nur hier: „Farbiges Kästchen = Locator-Bar-Farbe". [Mike]
 
 Bei „Zeit seit letztem Tod" kein Gesamt-Wert. [Claude]
 
-Nicht in Allgemein, weil schon woanders: Spielzeit, Tode, alle Strecken, Sprünge, Schleichzeit. [Mike]
+Nicht in Allgemein, weil schon woanders: Spielzeit, Tode, PvP-Kills, alle Strecken, Sprünge, Schleichzeit. [Mike]
 
 **Tode** – Liste aller Tode seit Installation [Mike]
-- Spalten: Datum, Spieler (Kopf + Name), Level beim Tod, Ursache.
+- Spalten: Datum, Spieler (Kopf + Name), Level beim Tod, Ursache. Bei PvP: „von <Spieler> getötet". [Mike]
 - Start-Sortierung: neueste zuerst.
 - Tode vor der Installation gibt es nur als Anzahl (Übersicht).
 
