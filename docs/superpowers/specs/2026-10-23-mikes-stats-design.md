@@ -47,9 +47,8 @@ Dazu ein paar Werte, die Vanilla nicht speichert: höchstes Level, XP gesamt, Le
 **Gewählt: C.** [Mike]
 
 - **Eine einzige .jar** für Server und Client (wie Mikes_Upper mit `splitEnvironmentSourceSets`). Auf dem Server Pflicht, beim Spieler freiwillig. [Claude]
-- Ohne Client-Mod: `/stats` öffnet ein Truhen-Menü (Bild 1–2). [Mike]
-- Mit Client-Mod: Knopf „Statistiken alle" im Escape-Menü öffnet das eigene Menü (Bild 4). [Mike]
-- Mit Client-Mod öffnet auch `/stats` das schöne Menü statt der Truhe. [Claude]
+- `/stats` öffnet **immer** das Truhen-Menü (Bild 1–2), auch wenn man den Client-Mod hat. [Mike]
+- Mit Client-Mod: Knopf „Statistiken alle" im Escape-Menü öffnet das eigene Menü (Bild 4). Nur darüber gibt es das schöne Menü. [Mike]
 - Alle Daten kommen vom Server. Der Client zeigt nur an. [Claude]
 
 ---
@@ -148,7 +147,7 @@ Nicht in Allgemein, weil schon woanders: Spielzeit, Tode, alle Strecken, Sprüng
 
 ---
 
-## 5. `/stats` ohne Client-Mod (Bild 1 und 2)
+## 5. `/stats` als Truhen-Menü, für alle (Bild 1 und 2)
 
 - Jeder Spieler darf `/stats` nutzen. [Claude]
 - Großes Truhen-Menü (6 Reihen). Klicks werden abgefangen, nichts kann herausgenommen werden. [Claude]
