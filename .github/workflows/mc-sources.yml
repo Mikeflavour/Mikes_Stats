@@ -23,7 +23,12 @@ jobs:
       - run: chmod +x gradlew && ./gradlew genSources --stacktrace
       - run: |
           mkdir out
-          find ~/.gradle .gradle -name '*sources*.jar' \( -path '*minecraft*' -o -path '*fabric-api*' -o -path '*fabric*' \) -exec cp {} out/ \; 2>/dev/null || true
+          find ~/.gradle .gradle -name '*sources*.jar' -path '*minecraft*' -exec cp {} out/ \; 2>/dev/null || true
+          # Fabric API module sources (Loom doesn't fetch them); cache layout: group/module/version/sha1/file
+          find ~/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api -name '*.jar' ! -name '*sources*' | while read -r j; do
+            v=$(basename "$(dirname "$(dirname "$j")")"); m=$(basename "$(dirname "$(dirname "$(dirname "$j")")")")
+            curl -sfL -o "out/$m-$v-sources.jar" "https://maven.fabricmc.net/net/fabricmc/fabric-api/$m/$v/$m-$v-sources.jar" || true
+          done
           ls -la out
       # Artifacts can't be downloaded from cloud sessions (blob storage blocked), git can.
       - run: |
