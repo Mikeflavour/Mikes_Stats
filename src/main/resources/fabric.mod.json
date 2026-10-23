@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "mikes_stats",
+  "version": "${version}",
+  "name": "Mikes Stats",
+  "description": "Statistiken aller Spieler: /stats als Truhen-Menü, mit Client-Mod ein eigenes Menü im Escape-Menü.",
+  "authors": ["Mikeflavour"],
+  "license": "All-Rights-Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["mikesstats.MikesStatsMod"],
+    "client": ["mikesstats.client.MikesStatsClient"]
+  },
+  "depends": {
+    "fabricloader": "*",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
