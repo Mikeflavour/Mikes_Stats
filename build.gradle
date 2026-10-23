@@ -33,6 +33,7 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+	testLogging { events "passed", "failed"; exceptionFormat "full" }
 }
 
 processResources {
