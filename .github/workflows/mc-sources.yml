@@ -7,6 +7,9 @@ on:
   push:
     paths: ['.github/workflows/mc-sources.yml']
 
+permissions:
+  contents: write
+
 jobs:
   sources:
     runs-on: ubuntu-latest
@@ -22,7 +25,8 @@ jobs:
           mkdir out
           find ~/.gradle .gradle -name '*sources*.jar' \( -path '*minecraft*' -o -path '*fabric-api*' -o -path '*fabric*' \) -exec cp {} out/ \; 2>/dev/null || true
           ls -la out
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mc-sources
-          path: out/
+      # Artifacts can't be downloaded from cloud sessions (blob storage blocked), git can.
+      - run: |
+          cd out && git init -q -b mc-sources && git add .
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "mc sources ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" mc-sources
