@@ -32,10 +32,10 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.component.ResolvableProfile;
 
-/** "Statistiken alle": all players in tabs, like the approved mockup (dark, 25 % see-through, sortable columns). */
+/** "Statistiken alle": all players in tabs, like the approved mockup (dark, 10 % see-through, sortable columns). */
 public class StatsScreen extends Screen {
     // colours from the mockup
-    static final int PANEL = 0xC00E0F12;
+    static final int PANEL = 0xE6191A1F;
     static final int BORDER = 0xFF34363C;
     static final int LINE = 0xFF2C2E33;
     static final int WHITE = 0xFFFFFFFF;

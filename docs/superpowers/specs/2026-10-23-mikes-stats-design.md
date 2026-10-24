@@ -93,7 +93,7 @@ Dazu ein paar Werte, die Vanilla nicht speichert: höchstes Level, XP gesamt, Le
 - Wenn rechts kein Platz ist (kleines Fenster): Knopf unter „Statistiken". [Claude]
 
 ### Aussehen (Bild 4)
-- Dunkle Farben, Hintergrund 25 % durchsichtig (Mike am 24.10.2026, vorher 50 %), das Spiel bleibt dahinter sichtbar. [Mike]
+- Dunkle Farben, Hintergrund #191A1F, 10 % durchsichtig (Mike am 24.10.2026, vorher #0E0F12 mit 50 %), das Spiel bleibt dahinter sichtbar. [Mike]
 - Minecraft-Schrift, kleine Piktogramme, echte Skin-Köpfe der Spieler. [Mike]
 - Kopfzeile: „Statistiken alle", „Seit 27.04.2026 · X Tage", „Ingame-Tag X". [Mike]
 - Rechts oben Knopf **„Player X/Y"** zum Ein- und Ausblenden (siehe 6.). [Mike]
