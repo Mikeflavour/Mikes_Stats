@@ -22,27 +22,40 @@ public final class Tracking {
     }
 
     public static void register() {
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> onJoin(handler.player));
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> onLeave(handler.player));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> guard("join", () -> onJoin(handler.player)));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> guard("leave", () -> onLeave(handler.player)));
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
-            if (entity instanceof ServerPlayer player) onDeath(player, source);
+            if (entity instanceof ServerPlayer player) guard("death", () -> onDeath(player, source));
         });
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> guard("stop", () -> {
             ModDataStore store = MikesStatsMod.store();
             if (store != null) store.all().keySet().forEach(Tracking::save);
-        });
+        }));
+    }
+
+    /** These run inside vanilla (death, shutdown, XP): a bug of ours must never crash the server or skip its save. */
+    private static void guard(String what, Runnable action) {
+        try {
+            action.run();
+        } catch (RuntimeException e) {
+            MikesStatsMod.LOGGER.error("Mikes Stats: {} tracking failed", what, e);
+        }
     }
 
     /** from PlayerXpMixin */
     public static void onXpGained(ServerPlayer player, int amount) {
-        ModData data = data(player);
-        if (data != null) data.addXp(amount);
+        guard("xp", () -> {
+            ModData data = data(player);
+            if (data != null) data.addXp(amount);
+        });
     }
 
     /** from PlayerXpMixin */
     public static void onLevelChanged(ServerPlayer player) {
-        ModData data = data(player);
-        if (data != null) data.seeLevel(player.experienceLevel);
+        guard("level", () -> {
+            ModData data = data(player);
+            if (data != null) data.seeLevel(player.experienceLevel);
+        });
     }
 
     private static void onJoin(ServerPlayer player) {
@@ -73,7 +86,7 @@ public final class Tracking {
             cause = withoutVictimName(source.getLocalizedDeathMessage(victim));
         }
         data.seeLevel(victim.experienceLevel);
-        data.deaths.add(new ModData.DeathRecord(LocalDate.now(), victim.experienceLevel,
+        data.addDeath(new ModData.DeathRecord(LocalDate.now(), victim.experienceLevel,
                 Texts.toJson(cause, victim.registryAccess())));
         save(victim.getUUID());
     }

@@ -38,10 +38,23 @@ import net.minecraft.world.level.storage.LevelResource;
 
 /** Everyone who ever played: online players live, offline players from their files. Runs on the server thread. */
 public final class SnapshotBuilder {
+    private static StatsSnapshot cached;
+    private static long cachedAt;
+
     private SnapshotBuilder() {
     }
 
-    public static StatsSnapshot build(MinecraftServer server) {
+    /** Everyone asking within a second gets the same snapshot: /stats and the client mod share one disk read. */
+    public static StatsSnapshot get(MinecraftServer server) {
+        long now = System.currentTimeMillis();
+        if (cached == null || now - cachedAt >= 1000) {
+            cached = build(server);
+            cachedAt = now;
+        }
+        return cached;
+    }
+
+    private static StatsSnapshot build(MinecraftServer server) {
         ModDataStore store = MikesStatsMod.store();
         Path statsDir = server.getWorldPath(LevelResource.PLAYER_STATS_DIR);
         Path dataDir = server.getWorldPath(LevelResource.PLAYER_DATA_DIR);

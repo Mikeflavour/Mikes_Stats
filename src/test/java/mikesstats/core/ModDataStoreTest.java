@@ -58,6 +58,27 @@ class ModDataStoreTest {
     }
 
     @Test
+    void nullCollections_areEmptyAfterLoad() throws IOException {
+        Files.writeString(dir.resolve(BEN + ".json"), "{\"maxLevel\":5,\"deaths\":null,\"pvpVictims\":null,\"hidden\":null}");
+
+        ModData ben = new ModDataStore(dir).get(BEN);
+
+        assertEquals(5, ben.maxLevel);
+        assertTrue(ben.deaths.isEmpty());
+        assertTrue(ben.pvpVictims.isEmpty());
+        assertTrue(ben.hidden.isEmpty());
+    }
+
+    @Test
+    void addDeath_keepsNewest200() {
+        ModData d = new ModData();
+        for (int i = 0; i < 205; i++) d.addDeath(new ModData.DeathRecord(LocalDate.of(2026, 10, 1), i, "x"));
+        assertEquals(200, d.deaths.size());
+        assertEquals(5, d.deaths.get(0).level());
+        assertEquals(204, d.deaths.get(199).level());
+    }
+
+    @Test
     void addXp_ignoresNegative() {
         ModData d = new ModData();
         d.addXp(-5);

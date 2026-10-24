@@ -10,7 +10,9 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -75,6 +77,10 @@ public final class ModDataStore {
         try (Reader r = Files.newBufferedReader(f)) {
             ModData data = SnapshotCodec.GSON.fromJson(r, ModData.class);
             if (data == null) throw new JsonParseException("empty file");
+            // a hand-edited "deaths": null overwrites the field default
+            if (data.deaths == null) data.deaths = new ArrayList<>();
+            if (data.pvpVictims == null) data.pvpVictims = new HashMap<>();
+            if (data.hidden == null) data.hidden = new HashSet<>();
             return data;
         } catch (IOException | RuntimeException e) {
             try {

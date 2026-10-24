@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import mikesstats.StatNames;
 import mikesstats.Texts;
 import mikesstats.core.Formats;
+import mikesstats.core.PivotLayout;
 import mikesstats.core.SortState;
 import mikesstats.core.StatsSnapshot;
 import mikesstats.core.StatsSnapshot.DeathEntry;
@@ -50,7 +51,9 @@ public class StatsScreen extends Screen {
     static final int BUTTON_BORDER = 0xFF3A3C42;
     static final int ZEBRA = 0x0DFFFFFF;
     static final int OWN_ROW = 0x1FFFFFFF;
-    static final int ROW_H = 18;
+    static final int ROW_H = 20;
+    /** stat names keep at least this much before player columns scroll sideways */
+    static final int NAME_MIN = 110;
 
     private static final String[] TAB_KEYS = {"overview", "general", "mobs", "blocks", "items", "ways", "deaths"};
 
@@ -62,6 +65,8 @@ public class StatsScreen extends Screen {
     private int sub;
     private SortState sort = new SortState("name", false);
     private int scroll;
+    /** first player column shown in the pivot tabs */
+    private int scrollX;
     private final List<Hit> hits = new ArrayList<>();
     private final Map<String, String> causes = new HashMap<>();
 
@@ -71,6 +76,9 @@ public class StatsScreen extends Screen {
     private List<PlayerEntry> overview = List.of();
     private PivotTable pivot;
     private List<DeathEntry> deaths = List.of();
+    // pivot widths, measured once per rebuild instead of every frame
+    private int pivotValueW;
+    private int pivotTotalW;
 
     record Hit(int x0, int y0, int x1, int y1, Runnable action) {
         boolean contains(double x, double y) {
@@ -116,8 +124,12 @@ public class StatsScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
-        scroll = Math.max(0, scroll - (int) Math.signum(scrollY) * 2);
+    public boolean mouseScrolled(double x, double y, double dx, double dy) {
+        if (dx != 0 || minecraft.hasShiftDown()) {
+            scrollX = Math.max(0, scrollX - (int) Math.signum(dx != 0 ? dx : dy));
+        } else {
+            scroll = Math.max(0, scroll - (int) Math.signum(dy) * 2);
+        }
         return true;
     }
 
@@ -143,8 +155,20 @@ public class StatsScreen extends Screen {
             default -> {
                 String category = Tabs.subCategories(tab).get(sub);
                 pivot = TableModel.pivot(s, tab, category, hidden, StatNames::isBlockItem, id -> label(category, id), sort);
+                measurePivot();
             }
         }
+    }
+
+    private void measurePivot() {
+        int values = 0;
+        int total = font.width(Component.literal(t("col.total") + " ▼").withStyle(ChatFormatting.BOLD));
+        for (PivotRow r : pivot.rows()) {
+            for (long v : r.values()) if (v > 0) values = Math.max(values, font.width(Formats.value(r.statId(), v)));
+            if (r.total() >= 0) total = Math.max(total, font.width(Formats.value(r.statId(), r.total())));
+        }
+        pivotValueW = values + 6;
+        pivotTotalW = total + 8;
     }
 
     private static String label(String category, String statId) {
@@ -227,7 +251,7 @@ public class StatsScreen extends Screen {
             switch (tab) {
                 case OVERVIEW -> drawOverview(g, left, right, top, bottom, mouseX, mouseY);
                 case DEATHS -> drawDeaths(g, left, right, top, bottom);
-                default -> drawPivot(g, left, right, top, bottom);
+                default -> drawPivot(g, left, right, top, bottom, mouseX, mouseY);
             }
             g.disableScissor();
         }
@@ -277,6 +301,18 @@ public class StatsScreen extends Screen {
         }));
     }
 
+    /** Full text as tooltip when it had to be cut to fit. */
+    private void cutTooltip(GuiGraphicsExtractor g, String full, String shown, int x0, int y0, int x1, int y1, int mouseX, int mouseY) {
+        if (shown.length() < full.length() && mouseX >= x0 && mouseX < x1 && mouseY >= y0 && mouseY < y1) {
+            g.setTooltipForNextFrame(font, Component.literal(full), mouseX, mouseY);
+        }
+    }
+
+    private void arrow(GuiGraphicsExtractor g, String glyph, int x, int y, int step) {
+        g.text(font, glyph, x, y, GOLD);
+        hits.add(new Hit(x - 2, y - 2, x + 10, y + 10, () -> scrollX += step));
+    }
+
     private int visibleRows(int rowsTop, int bottom, int count) {
         int fit = Math.max(0, (bottom - rowsTop) / ROW_H);
         scroll = Math.max(0, Math.min(scroll, count - fit));
@@ -309,9 +345,16 @@ public class StatsScreen extends Screen {
                 {"level", t("col.level")}, {"maxLevel", t("col.max_level")}, {"deaths", t("col.deaths")},
                 {"pvpKills", t("col.pvp")}, {"playTime", t("col.play_time")}, {"xpTotal", t("col.xp")}};
         int[] widths = new int[cols.length];
+        String[] below = new String[cols.length]; // "(seit Mod)" goes on a second header line
         int fixed = 0;
         for (int i = 0; i < cols.length; i++) {
-            widths[i] = font.width(Component.literal(cols[i][1] + " ▼").withStyle(ChatFormatting.BOLD)) + 8;
+            int split = cols[i][1].indexOf(" (");
+            if (split > 0) {
+                below[i] = cols[i][1].substring(split + 1);
+                cols[i][1] = cols[i][1].substring(0, split);
+            }
+            widths[i] = Math.max(font.width(Component.literal(cols[i][1] + " ▼").withStyle(ChatFormatting.BOLD)),
+                    below[i] == null ? 0 : font.width(below[i])) + 8;
             fixed += widths[i];
         }
         int nameX = left + 26;
@@ -321,31 +364,40 @@ public class StatsScreen extends Screen {
         int cx = nameX + nameW;
         for (int i = 0; i < cols.length; i++) {
             header(g, cols[i][1], cols[i][0], true, cx, widths[i], true, top);
+            if (below[i] != null) g.text(font, below[i], cx + widths[i] - font.width(below[i]), top + 10, MUTED);
             cx += widths[i];
         }
 
-        int rowsTop = top + 14;
+        int rowsTop = top + 24;
         if (overview.isEmpty()) {
             empty(g, "empty.hidden", left, right, rowsTop + 10);
             return;
         }
+        // status under the name for everyone as soon as one row has no room beside it
+        boolean stacked = false;
+        for (PlayerEntry p : overview) stacked |= font.width(p.name()) + 6 + font.width(status(p)) > nameW - 4;
         int fit = visibleRows(rowsTop, bottom, overview.size());
         for (int i = 0; i < fit && scroll + i < overview.size(); i++) {
             PlayerEntry p = overview.get(scroll + i);
             int y = rowsTop + i * ROW_H;
             rowBackground(g, left, right, y, scroll + i, p.uuid());
-            int ty = y + 5;
+            int ty = y + 6;
 
-            g.fill(left, y + 6, left + 6, y + 12, 0xFF000000 | p.waypointColor());
-            if (mouseX >= left && mouseX < left + 6 && mouseY >= y + 6 && mouseY < y + 12) {
+            g.fill(left, y + 7, left + 6, y + 13, 0xFF000000 | p.waypointColor());
+            if (mouseX >= left && mouseX < left + 6 && mouseY >= y + 7 && mouseY < y + 13) {
                 g.setTooltipForNextFrame(font, Component.literal(String.format("#%06X", p.waypointColor())), mouseX, mouseY);
             }
-            PlayerFaceExtractor.extractRenderState(g, profile(p.uuid()), left + 10, y + 3, 12);
+            PlayerFaceExtractor.extractRenderState(g, profile(p.uuid()), left + 10, y + 4, 12);
 
-            g.text(font, p.name(), nameX, ty, WHITE);
-            String status = p.online() ? t("online") : t("last_seen", p.lastSeen() == null ? "–" : Formats.date(p.lastSeen()));
-            int sx = nameX + font.width(p.name()) + 6;
-            if (sx + font.width(status) <= nameX + nameW - 4) g.text(font, status, sx, ty, p.online() ? GREEN : MUTED);
+            String status = status(p);
+            int statusColor = p.online() ? GREEN : MUTED;
+            if (stacked) {
+                g.text(font, font.plainSubstrByWidth(p.name(), nameW - 4), nameX, y + 2, WHITE);
+                g.text(font, font.plainSubstrByWidth(status, nameW - 4), nameX, y + 11, statusColor);
+            } else {
+                g.text(font, p.name(), nameX, ty, WHITE);
+                g.text(font, status, nameX + font.width(p.name()) + 6, ty, statusColor);
+            }
 
             String[] values = {
                     Formats.number(p.level()),
@@ -368,6 +420,10 @@ public class StatsScreen extends Screen {
         scrollbar(g, right, rowsTop, bottom, overview.size(), fit);
     }
 
+    private static String status(PlayerEntry p) {
+        return p.online() ? t("online") : t("last_seen", p.lastSeen() == null ? "–" : Formats.date(p.lastSeen()));
+    }
+
     /** "Ben 3×, Tim 1×" – who this player killed since the mod was installed. */
     private static String victims(PlayerEntry p) {
         if (p.pvpVictims().isEmpty()) return t("pvp.none");
@@ -379,38 +435,37 @@ public class StatsScreen extends Screen {
 
     // ---- Allgemein, Mobs, Blöcke, Items, Wege ---------------------------------------------
 
-    private void drawPivot(GuiGraphicsExtractor g, int left, int right, int top, int bottom) {
+    private void drawPivot(GuiGraphicsExtractor g, int left, int right, int top, int bottom, int mouseX, int mouseY) {
         String category = Tabs.subCategories(tab).get(sub);
         List<PlayerEntry> players = pivot.columns();
         if (players.isEmpty()) {
             empty(g, "empty.hidden", left, right, top + 20);
             return;
         }
-        int[] widths = new int[players.size()];
-        for (int c = 0; c < players.size(); c++) {
-            int w = Math.max(30, Math.min(60, font.width(players.get(c).name())));
-            for (PivotRow r : pivot.rows()) w = Math.max(w, font.width(Formats.value(r.statId(), r.values()[c])));
-            widths[c] = w + 8;
-        }
-        String totalLabel = t("col.total");
-        int totalW = font.width(Component.literal(totalLabel + " ▼").withStyle(ChatFormatting.BOLD)) + 8;
-        for (PivotRow r : pivot.rows()) totalW = Math.max(totalW, font.width(Formats.value(r.statId(), r.total())) + 8);
-        int playersW = 0;
-        for (int w : widths) playersW += w;
+        // Gesamt pinned right, player columns left of it, the stat name gets the rest
+        int n = players.size();
         int nameX = left + 20;
-        int nameW = Math.max(60, right - nameX - playersW - totalW);
+        int totalX = right - pivotTotalW;
+        int avail = totalX - nameX - NAME_MIN;
+        int colW = PivotLayout.columnWidth(avail, n, pivotValueW);
+        int shown = PivotLayout.visibleColumns(avail, colW, n);
+        scrollX = PivotLayout.clampScroll(scrollX, n, shown);
+        int colsX = totalX - shown * colW;
+        int nameW = colsX - nameX;
 
         int labelY = top + 12;
         header(g, t("col." + TAB_KEYS[tab.ordinal()]), "name", false, nameX, nameW, false, labelY);
-        int cx = nameX + nameW;
-        for (int c = 0; c < players.size(); c++) {
-            PlayerEntry p = players.get(c);
-            PlayerFaceExtractor.extractRenderState(g, profile(p.uuid()), cx + widths[c] - 9, top, 8);
-            String name = font.plainSubstrByWidth(p.name(), widths[c] - 4);
-            header(g, name, p.uuid().toString(), true, cx, widths[c], true, labelY);
-            cx += widths[c];
+        for (int c = 0; c < shown; c++) {
+            PlayerEntry p = players.get(scrollX + c);
+            int cx = colsX + c * colW;
+            PlayerFaceExtractor.extractRenderState(g, profile(p.uuid()), cx + colW - 9, top, 8);
+            String name = font.plainSubstrByWidth(p.name(), colW - 4);
+            header(g, name, p.uuid().toString(), true, cx, colW, true, labelY);
+            cutTooltip(g, p.name(), name, cx, top, cx + colW, labelY + 11, mouseX, mouseY);
         }
-        header(g, totalLabel, "total", true, cx, totalW, true, labelY);
+        if (scrollX > 0) arrow(g, "◀", colsX - 10, top, -1);
+        if (scrollX + shown < n) arrow(g, "▶", totalX + 2, top, 1);
+        header(g, t("col.total"), "total", true, totalX, pivotTotalW, true, labelY);
 
         int rowsTop = labelY + 14;
         List<PivotRow> rows = pivot.rows();
@@ -423,20 +478,21 @@ public class StatsScreen extends Screen {
             PivotRow r = rows.get(scroll + i);
             int y = rowsTop + i * ROW_H;
             rowBackground(g, left, right, y, scroll + i, null);
-            int ty = y + 5;
-            g.item(StatIcons.icon(category, r.statId()), left, y + 1);
-            g.text(font, font.plainSubstrByWidth(label(category, r.statId()), nameW - 4), nameX, ty, WHITE);
+            int ty = y + 6;
+            g.item(StatIcons.icon(category, r.statId()), left, y + 2);
+            String label = label(category, r.statId());
+            String cut = font.plainSubstrByWidth(label, nameW - 4);
+            g.text(font, cut, nameX, ty, WHITE);
+            cutTooltip(g, label, cut, nameX, y, colsX, y + ROW_H, mouseX, mouseY);
             long best = 0;
             for (long v : r.values()) best = Math.max(best, v);
-            cx = nameX + nameW;
-            for (int c = 0; c < r.values().length; c++) {
-                long v = r.values()[c];
+            for (int c = 0; c < shown; c++) {
+                long v = r.values()[scrollX + c];
                 String text = v == 0 ? "–" : Formats.value(r.statId(), v);
-                g.text(font, text, cx + widths[c] - font.width(text), ty, v > 0 && v == best ? WHITE : CELL);
-                cx += widths[c];
+                g.text(font, text, colsX + (c + 1) * colW - font.width(text), ty, v > 0 && v == best ? WHITE : CELL);
             }
             String total = r.total() < 0 ? "–" : Formats.value(r.statId(), r.total());
-            g.text(font, total, cx + totalW - font.width(total), ty, GOLD);
+            g.text(font, total, right - font.width(total), ty, GOLD);
         }
         scrollbar(g, right, rowsTop, bottom, rows.size(), fit);
     }
@@ -470,9 +526,9 @@ public class StatsScreen extends Screen {
             DeathEntry d = deaths.get(scroll + i);
             int y = rowsTop + i * ROW_H;
             rowBackground(g, left, right, y, scroll + i, d.player());
-            int ty = y + 5;
+            int ty = y + 6;
             g.text(font, Formats.date(d.date()), left, ty, SOFT);
-            PlayerFaceExtractor.extractRenderState(g, profile(d.player()), playerX, y + 3, 12);
+            PlayerFaceExtractor.extractRenderState(g, profile(d.player()), playerX, y + 4, 12);
             g.text(font, font.plainSubstrByWidth(names.getOrDefault(d.player(), "?"), playerW - 20), playerX + 16, ty, WHITE);
             String level = Formats.number(d.level());
             g.text(font, level, levelX + levelW - font.width(level), ty, GREEN);

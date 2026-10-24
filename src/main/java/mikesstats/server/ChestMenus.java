@@ -66,7 +66,7 @@ public final class ChestMenus {
     }
 
     public static void open(ServerPlayer viewer, MinecraftServer server) {
-        open(viewer, new State(SnapshotBuilder.build(server), server));
+        open(viewer, new State(SnapshotBuilder.get(server), server));
     }
 
     private static void open(ServerPlayer viewer, State state) {

@@ -54,7 +54,7 @@ public final class Network {
             if (last != null && now - last < 1000) return; // at most one answer per second per player
             lastAnswer.put(context.player().getUUID(), now);
             ServerPlayNetworking.send(context.player(),
-                    new StatsPayload(SnapshotCodec.encode(SnapshotBuilder.build(context.server()))));
+                    new StatsPayload(SnapshotCodec.encode(SnapshotBuilder.get(context.server()))));
         });
     }
 }
