@@ -86,10 +86,10 @@ public class PlayerFilterScreen extends Screen {
             int y = rowsTop + i * StatsScreen.ROW_H;
             boolean shown = !hidden.contains(p.uuid());
             if ((scroll + i) % 2 == 0) g.fill(left - 2, y, right + 2, y + StatsScreen.ROW_H, StatsScreen.ZEBRA);
-            g.outline(left, y + 4, 10, 10, shown ? StatsScreen.GOLD : StatsScreen.BUTTON_BORDER);
-            if (shown) g.fill(left + 2, y + 6, left + 8, y + 12, StatsScreen.GOLD);
-            PlayerFaceExtractor.extractRenderState(g, StatsScreen.profile(p.uuid()), left + 16, y + 3, 12);
-            g.text(font, p.name(), left + 32, y + 5, shown ? StatsScreen.WHITE : StatsScreen.MUTED);
+            g.outline(left, y + 5, 10, 10, shown ? StatsScreen.GOLD : StatsScreen.BUTTON_BORDER);
+            if (shown) g.fill(left + 2, y + 7, left + 8, y + 13, StatsScreen.GOLD);
+            PlayerFaceExtractor.extractRenderState(g, StatsScreen.profile(p.uuid()), left + 16, y + 4, 12);
+            g.text(font, p.name(), left + 32, y + 6, shown ? StatsScreen.WHITE : StatsScreen.MUTED);
             hits.add(new StatsScreen.Hit(left - 2, y, right + 2, y + StatsScreen.ROW_H, () -> {
                 if (!hidden.remove(p.uuid())) hidden.add(p.uuid());
                 ClientConfig.get().save();
