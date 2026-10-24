@@ -66,7 +66,7 @@ public final class Tracking {
         if (data == null) return;
         Component cause;
         if (victim.getKillCredit() instanceof ServerPlayer killer && killer != victim) {
-            cause = Component.literal("von " + killer.getGameProfile().name() + " getötet");
+            cause = Component.literal(" von " + killer.getGameProfile().name() + " getötet");
             data(killer).pvpVictims.merge(victim.getUUID(), 1, Integer::sum);
             save(killer.getUUID());
         } else {

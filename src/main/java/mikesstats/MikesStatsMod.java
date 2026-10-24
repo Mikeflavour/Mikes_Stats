@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import mikesstats.core.Config;
 import mikesstats.core.ModDataStore;
 import mikesstats.server.Network;
+import mikesstats.server.StatsCommand;
 import mikesstats.server.Tracking;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -34,5 +35,6 @@ public class MikesStatsMod implements ModInitializer {
                 store = new ModDataStore(server.getWorldPath(LevelResource.ROOT).resolve("mikes_stats")));
         Tracking.register();
         Network.register();
+        StatsCommand.register();
     }
 }

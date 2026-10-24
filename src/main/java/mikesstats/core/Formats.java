@@ -28,6 +28,19 @@ public final class Formats {
         return number(ticks / 72_000) + " h";
     }
 
+    /** Under an hour in minutes, otherwise hours. */
+    public static String duration(long ticks) {
+        return ticks < 72_000 ? number(ticks / 1_200) + " min" : hours(ticks);
+    }
+
+    /** A stat value in the unit vanilla uses for it (Stats.makeCustomStat formatters). */
+    public static String value(String statId, long value) {
+        if (statId.endsWith("_one_cm")) return km(value);
+        if (statId.endsWith("_time") || statId.startsWith("minecraft:time_since_")) return duration(value);
+        if (statId.startsWith("minecraft:damage_")) return number(value / 10); // stored as tenths of a heart point
+        return number(value);
+    }
+
     public static String number(long n) {
         return new DecimalFormat("#,##0", DE).format(n);
     }
