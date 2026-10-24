@@ -8,15 +8,17 @@ Fabric-Mod: Statistiken aller Spieler. `/stats` = Truhen-Menü für alle, Escape
 
 ## Bauen
 - Minecraft 26.2 (ohne Mappings), Java 25, Versionen in `gradle.properties` (wie Mikes_Upper).
-- Cloud-Sessions erreichen maven.fabricmc.net und Mojang nicht: **gebaut wird nur auf GitHub Actions** (`build.yml` bei jedem Push). Jar = Artifact `Mikes_Stats-jar`.
+- Cloud-Sessions erreichen maven.fabricmc.net und Mojang nicht: **gebaut wird nur auf GitHub Actions** (`build.yml` bei jedem Push).
+- Artifacts lassen sich aus der Cloud nicht laden (Blob-Speicher gesperrt). Deshalb legt CI die Jar auf den Branch `jar` (`git fetch origin jar`). Test-Ergebnisse stehen im Job-Log (GitHub-MCP `get_job_logs`).
 - Reine Logik in `mikesstats.core` (kein Minecraft): lokal testbar mit `scripts/test-core.sh` (Java 21 reicht, keine Java-22+-Features in `core`).
-- Minecraft-Quellcode zum Nachschlagen: Workflow `mc-sources.yml` manuell starten, Artifact `mc-sources` laden.
+- Minecraft- und Fabric-API-Quellcode zum Nachschlagen: Branch `mc-sources` (Workflow `mc-sources.yml` läuft, wenn sich die Datei ändert). 26.2 hat neue Namen, z.B. `GuiGraphicsExtractor`, `extractRenderState`, `minecraft.gui.setScreen`, `ContainerInput`.
 
 ## Liefern
-- Jar aus dem Artifact als Zip nach `/mnt/project-files/mikes-stats/` (Mike ist oft am Handy, .jar direkt lässt sich dort nicht laden).
+- Jar vom Branch `jar` als Zip nach `/mnt/project-files/mikes-stats/` (Mike ist oft am Handy, .jar direkt lässt sich dort nicht laden).
 - Server ist Exaroton: Dateien nur hoch-/runterladen, kein Umbenennen.
 
 ## Regeln
 - Mike schreibt Deutsch; Texte im Spiel deutsch über `assets/mikes_stats/lang/de_de.json`.
 - Keine Info doppelt in zwei Reitern. Keine neuen Blöcke/Items (Vanilla-Clients müssen beitreten können).
-- Vanilla-Dateien (`world/stats`, `playerdata`, `usercache.json`) nur lesen, nie schreiben.
+- Vanilla-Dateien (`world/players/stats`, `world/players/data`, `usercache.json`) nur lesen, nie schreiben.
+- `/stats`-Truhe: Texte als deutsche Literale (Vanilla-Clients kennen unsere Sprachdatei nicht). Client-Menü: Sprachschlüssel.
