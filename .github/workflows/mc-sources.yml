@@ -1,0 +1,37 @@
+name: mc-sources
+
+# Decompiles Minecraft so the source can be looked up while coding.
+# Push trigger: workflow_dispatch only works once the file is on main.
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/mc-sources.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  sources:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v4
+      - run: chmod +x gradlew && ./gradlew genSources --stacktrace
+      - run: |
+          mkdir out
+          find ~/.gradle .gradle -name '*sources*.jar' -path '*minecraft*' -exec cp {} out/ \; 2>/dev/null || true
+          # Fabric API module sources (Loom doesn't fetch them); cache layout: group/module/version/sha1/file
+          find ~/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api -name '*.jar' ! -name '*sources*' | while read -r j; do
+            v=$(basename "$(dirname "$(dirname "$j")")"); m=$(basename "$(dirname "$(dirname "$(dirname "$j")")")")
+            curl -sfL -o "out/$m-$v-sources.jar" "https://maven.fabricmc.net/net/fabricmc/fabric-api/$m/$v/$m-$v-sources.jar" || true
+          done
+          ls -la out
+      # Artifacts can't be downloaded from cloud sessions (blob storage blocked), git can.
+      - run: |
+          cd out && git init -q -b mc-sources && git add .
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "mc sources ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" mc-sources

@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "mikesstats.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "PlayerXpMixin",
+    "ServerStatsCounterAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,40 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v4
+      - run: chmod +x gradlew && ./gradlew build --stacktrace
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports
+          path: build/reports/tests/
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mikes_Stats-jar
+          path: |
+            build/libs/*.jar
+            !build/libs/*-sources.jar
+      # Artifacts can't be downloaded from cloud sessions (blob storage blocked), git can.
+      - if: github.event_name == 'push'
+        run: |
+          mkdir jarbranch && cp build/libs/*.jar jarbranch/ && rm -f jarbranch/*-sources.jar
+          cd jarbranch && git init -q -b jar && git add .
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "jar ${GITHUB_SHA::7} (${GITHUB_REF_NAME})"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" jar
