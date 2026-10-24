@@ -37,15 +37,10 @@ class VanillaStatsReaderTest {
     }
 
     @Test
-    void readUserCache_mapsUuidToName() throws IOException {
+    void displayName_missingName_isShortUuid() {
         UUID ben = UUID.fromString("0f0e0d0c-0b0a-0908-0706-050403020100");
-        Path f = Files.writeString(dir.resolve("usercache.json"),
-                "[{\"name\":\"Ben\",\"uuid\":\"" + ben + "\",\"expiresOn\":\"2026-11-01 10:00:00 +0000\"}]");
-        assertEquals(Map.of(ben, "Ben"), VanillaStatsReader.readUserCache(f));
-    }
-
-    @Test
-    void readUserCache_missingFile_returnsEmpty() {
-        assertTrue(VanillaStatsReader.readUserCache(dir.resolve("usercache.json")).isEmpty());
+        assertEquals("0f0e0d0c", VanillaStatsReader.displayName(ben, null));
+        assertEquals("0f0e0d0c", VanillaStatsReader.displayName(ben, " "));
+        assertEquals("Ben", VanillaStatsReader.displayName(ben, "Ben"));
     }
 }

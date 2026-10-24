@@ -11,6 +11,7 @@
     "main": ["mikesstats.MikesStatsMod"],
     "client": ["mikesstats.client.MikesStatsClient"]
   },
+  "mixins": ["mikes_stats.mixins.json"],
   "depends": {
     "fabricloader": "*",
     "minecraft": "~${minecraft_version}",

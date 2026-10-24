@@ -13,6 +13,8 @@ import java.util.UUID;
 public final class ModData {
     public int maxLevel = -1;
     public long xpTotal = -1;
+    /** last name seen on join; usercache.json can lose old players */
+    public String name;
     public LocalDate lastSeen;
     public List<DeathRecord> deaths = new ArrayList<>();
     public Map<UUID, Integer> pvpVictims = new HashMap<>();
