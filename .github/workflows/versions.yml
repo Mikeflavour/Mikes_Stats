@@ -1,0 +1,12 @@
+name: versions
+on: push
+jobs:
+  v:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -s https://meta.fabricmc.net/v2/versions/game | jq -r '.[0:8][] | "\(.version) stable=\(.stable)"'
+          echo LOADER; curl -s https://meta.fabricmc.net/v2/versions/loader | jq -r '.[0:3][].version'
+          echo API; curl -s https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml | grep -o '<version>[^<]*26\.3[^<]*</version>' | tail -5
+          echo LOOM; curl -s https://maven.fabricmc.net/net/fabricmc/fabric-loom/maven-metadata.xml | grep -o '<version>[^<]*</version>' | tail -5
+          echo API262; curl -s https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml | grep -o '<version>[^<]*26\.2[^<]*</version>' | tail -3
