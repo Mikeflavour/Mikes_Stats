@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "mikes_stats",
+  "version": "${version}",
+  "name": "Mikes Stats",
+  "description": "See the statistics of every player on your server: /stats opens a chest menu for everyone, the optional client mod adds a full statistics screen.",
+  "authors": [
+    "Mikeflavour"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Mikeflavour/Mikes_Stats",
+    "sources": "https://github.com/Mikeflavour/Mikes_Stats",
+    "issues": "https://github.com/Mikeflavour/Mikes_Stats/issues"
+  },
+  "license": "All-Rights-Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "mikesstats.MikesStatsMod"
+    ],
+    "client": [
+      "mikesstats.client.MikesStatsClient"
+    ]
+  },
+  "mixins": [
+    "mikes_stats.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "*",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

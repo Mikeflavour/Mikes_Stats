@@ -1,0 +1,10 @@
+name: Suggest a feature
+description: An idea for a new feature.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What should the mod do, and why?
+    validations:
+      required: true

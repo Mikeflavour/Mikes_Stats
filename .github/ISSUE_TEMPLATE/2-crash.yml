@@ -1,0 +1,31 @@
+name: Report a crash
+description: The game crashes – please include the crash log.
+labels: [crash]
+body:
+  - type: dropdown
+    id: mc
+    attributes:
+      label: Minecraft version
+      options: ["26.3", "26.2", "Rust version", "Older"]
+    validations:
+      required: true
+  - type: input
+    id: mod
+    attributes:
+      label: Mod version
+      placeholder: e.g. 0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What were you doing right before the game crashed?
+    validations:
+      required: true
+  - type: input
+    id: log
+    attributes:
+      label: Crash log (link, e.g. from mclo.gs)
+      placeholder: https://mclo.gs/…
+    validations:
+      required: true
