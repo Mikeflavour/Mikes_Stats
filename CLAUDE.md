@@ -7,7 +7,7 @@ Fabric-Mod: Statistiken aller Spieler. `/stats` = Truhen-Menü für alle, Escape
 - Beispielbilder: https://claude.ai/artifact/6iyrKxf7Wp3315vxDnWgFw
 
 ## Bauen
-- Minecraft 26.2 (ohne Mappings), Java 25, Versionen in `gradle.properties` (wie Mikes_Upper).
+- Minecraft 26.3 (ohne Mappings; Branch `mc/26.3`, Jar auf Branch `jar-26.3`), Java 25, Versionen in `gradle.properties` (wie Mikes_Upper).
 - Cloud-Sessions erreichen maven.fabricmc.net und Mojang nicht: **gebaut wird nur auf GitHub Actions** (`build.yml` bei jedem Push).
 - Artifacts lassen sich aus der Cloud nicht laden (Blob-Speicher gesperrt). Deshalb legt CI die Jar auf den Branch `jar` (`git fetch origin jar`). Test-Ergebnisse stehen im Job-Log (GitHub-MCP `get_job_logs`).
 - Reine Logik in `mikesstats.core` (kein Minecraft): lokal testbar mit `scripts/test-core.sh` (Java 21 reicht, keine Java-22+-Features in `core`).

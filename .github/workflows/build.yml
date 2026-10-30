@@ -35,6 +35,6 @@ jobs:
       - if: github.event_name == 'push'
         run: |
           mkdir jarbranch && cp build/libs/*.jar jarbranch/ && rm -f jarbranch/*-sources.jar
-          cd jarbranch && git init -q -b jar && git add .
+          cd jarbranch && git init -q -b jar-26.3 && git add .
           git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "jar ${GITHUB_SHA::7} (${GITHUB_REF_NAME})"
-          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" jar
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" jar-26.3
